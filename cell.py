@@ -35,7 +35,7 @@ class Cell:
     def create_cell_count_label(location):
         lbl = Label(
             location,
-            bg='green',
+            bg='black',
             fg='white',
             text=f"Cells Left:{Cell.cell_count}",
             font=("", 30)
@@ -55,33 +55,33 @@ class Cell:
             Cell.randomize_mines()                             #重新排放地雷
             self.left_click_actions(event)                     
             return                                             
-        #print(event)  #DeBug用
 #----------------第一次不要按到地雷 END----------------#
-        #for cell_zero in self.all:
-        #    cell_zero.is_zero = False
+
 
         if self.is_mine:
             self.show_mine()
         else:
-            if self.count_mines(self) == 0:
+            if self.count_mines(self) == 0: #按下去的位置為0
                 self.around_show_cell(self)
                 self.is_zero = True
+
                 for cell_obj in self.get_surrounded_cells(self.x,self.y):
                     self.around_show_cell(cell_obj)
                     if self.count_mines(cell_obj) == 0:
                         cell_obj.is_zero = True
                         self.get_around_and_show_cell(cell_obj)
-            self.around_show_cell(self)
-            self.cell_btn_object.configure(bg='#66CCFF')#SystemButtonFace #標記按下位置
+            else:
+                self.around_show_cell(self)
+
+            self.cell_btn_object.configure(bg='#55BBFF')#SystemButtonFace #標記按下位置
             
-            # If Mines count is equal to the cells left count, player won
             if Cell.cell_count == settings.MINES_COUNT:
                 ctypes.windll.user32.MessageBoxW(0, 'Congratulations! You won the game!', 'Game Over', 0)
                 exit()
 
         # Cancel Left and Right click events if cell is already opened:
-        self.cell_btn_object.unbind('<Button-1>')
-        self.cell_btn_object.unbind('<Button-3>')
+        #self.cell_btn_object.unbind('<Button-1>')
+        #self.cell_btn_object.unbind('<Button-3>')
 
     def get_cell_by_axis(self, x,y):
         # Return a cell object based on the value of x,y
@@ -112,35 +112,32 @@ class Cell:
         return counter
 
     def get_around_and_show_cell(self,input_cell): #取得周圍並開啟為0的部分
-        #print("\nget_around_and_show_cell ->","input_cell:",input_cell)
-        cells = self.get_surrounded_cells(input_cell.x,input_cell.y)
-        counter = self.count_mines(input_cell)
-        if counter == 0 :
-            for cell in cells:
-                #解除cell的按鍵綁定
-                cell.cell_btn_object.unbind('<Button-1>')
-                cell.cell_btn_object.unbind('<Button-3>')
-                if self.count_mines(cell) == 0 and cell.is_zero == False :
-                    cell.is_zero = True
-                    self.get_around_and_show_cell(cell)#遞迴
-                self.around_show_cell(cell)    
-        self.around_show_cell(input_cell)
-    
-        #print("get_around_and_show_cell ->",input_cell ,"counter:",counter)
+        print("\nget_around_and_show_cell ->","input_cell:",input_cell)
+
+        
+        for cell in self.get_surrounded_cells(input_cell.x,input_cell.y):
+            if self.count_mines(cell) == 0 and cell.is_zero == False :#遞迴執行條件
+                cell.is_zero = True
+                self.get_around_and_show_cell(cell)#遞迴
+            self.around_show_cell(cell)    
+        
+        print("get_around_and_show_cell ->",input_cell ,"counter:",self.count_mines(input_cell))
         return
 
     def around_show_cell(self,input_cell): #原本的show_cell()
         if not input_cell.is_opened:
-            #print("around_show_cell() -> 本次開啟:",input_cell,"周圍炸彈數量",self.count_mines(input_cell))
+            print("around_show_cell() -> 本次開啟:",input_cell,"周圍炸彈數量",self.count_mines(input_cell))
             Cell.cell_count -= 1
             input_cell.cell_btn_object.configure(text=self.count_mines(input_cell))
             if Cell.cell_count_label_object:
                 Cell.cell_count_label_object.configure(text=f"Cells Left:{Cell.cell_count}")
 
             input_cell.cell_btn_object.configure(
-                 bg='gray'#SystemButtonFace
+                 bg='#adacac'#SystemButtonFace
                  )
-            
+        #解除cell的按鍵綁定
+        input_cell.cell_btn_object.unbind('<Button-1>')
+        input_cell.cell_btn_object.unbind('<Button-3>')    
         input_cell.is_opened = True
         
 
